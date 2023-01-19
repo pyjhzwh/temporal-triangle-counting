@@ -1,6 +1,6 @@
 #include "ETTC/Graph.h"
 #include "ETTC/t_triangle_counting.h"
-// #include <time.h>
+#include "timer.h"
 
 using namespace std;
 
@@ -9,6 +9,17 @@ int main(int argc, char *argv[])
     TemporalTime delta = stoi(argv[2]);  // delta_{1,3} in the paper
     TemporalTime delta1 = stoi(argv[3]); // delta_{1,2} in the paper
     TemporalTime delta2 = stoi(argv[4]); // delta_{2,3} in the paper
+
+    bool benchmarking = false;
+    if(argc > 6)
+    {
+        string arg = argv[6];
+        if (arg == "-b")
+        {
+            benchmarking = true;
+        }
+    }
+    const int NUM_TRIAL = 10;
     
     if(delta > delta1 + delta2)  // difference between first and third edge cannot be more than the sum
         delta = delta1 + delta2; // of difference between first and second edges and the difference between second and third edges
@@ -79,6 +90,42 @@ int main(int argc, char *argv[])
 
     motif_counter.freeMemory();
     // cout << "a5" << endl;
+
+    if (benchmarking)
+    {
+        cout << "benchmarking" << endl;
+        Timer t;
+        double avg_time;
+        TemporalGraph temporal_graph = loadTemporalGraph(argv[1]);  // read the input temporal graph
+        Graph static_graph = temporal_graph.ExtractStaticGraph();   // extract the static graph
+        CSRGraph static_csr_graph = static_graph.convertToCSR();   // convert the static graph into CSR format
+        CSRTemporalGraph csr_temporal_graph = temporal_graph.convertToCSR();  // convert the input temporal graph into CSR format
+        static_csr_graph.findDegenOrdering();  // find the degeneracy ordering of the static graph (CSR format)
+        t.Start();
+        for(int trial = 0; trial < NUM_TRIAL; trial++)
+        {
+            csr_temporal_graph.relabelByDegenOrder(static_csr_graph.degen_order_, static_csr_graph.sort_by_degen_);  // relabel vertices of the temporal graph (CSR format) by the degeneracy ordering of the static graph
+            static_csr_graph.relabelByDegenOrder();   // relabel vertices of the static graph (CSR format) by the degenracy ordering of the static graph
+            CSRDAG csr_dag(static_csr_graph);
+            MotifCounter motif_counter;
+            motif_counter.countTemporalTriangle(csr_dag.out_edge_dag_, csr_temporal_graph, delta, delta1, delta2);
+
+            // free memory
+            motif_counter.freeMemory();
+        }
+        t.Stop();
+        avg_time += t.Millisecs();
+        avg_time /= (double)NUM_TRIAL;
+        cout << "Avg of " << NUM_TRIAL << " trials temporal triangle count (ms) is: " << avg_time << " ms." << endl;
+
+        // free memory
+        static_graph.deleteGraph();
+        temporal_graph.deleteGraph();
+        static_csr_graph.deleteGraph();
+        csr_temporal_graph.deleteGraph();
+
+    }
+
     return 0;
  }
 

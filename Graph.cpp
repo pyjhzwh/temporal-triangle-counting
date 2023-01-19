@@ -1,6 +1,8 @@
 #include "ETTC/Graph.h"
 
 #include <algorithm>
+#include <fstream>
+#include <iostream>
 
 using namespace std;
 
@@ -610,7 +612,11 @@ TemporalGraph loadTemporalGraph(const char *path)
 
   // reads the input temporal graph from input file. first line includes number of vertices and edges
   // after that, each line contians a temporal edge in the format (source, destination, timestmap)
-
+  ifstream ifs(path);
+  if(!ifs.good())
+  {
+    cout << "Graph file \"" << path << "\" does not exist, or cannot be opened." << endl;
+  }
   FILE* f = fopen(path, "r");
 
   TemporalGraph temporal_graph;
