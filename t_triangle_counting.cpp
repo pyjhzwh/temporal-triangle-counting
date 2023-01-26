@@ -1,6 +1,7 @@
 #include "ETTC/t_triangle_counting.h"
 
 #include <algorithm>
+#include "timer.h"
 
 using namespace std;
 
@@ -161,11 +162,14 @@ Count MotifCounter::countCaseA(CSRTemporalGraph &t_graph,
     for (VertexEdgeId t2_pos = t2_start_pos; t2_pos < t2_end_pos; t2_pos++)
     {
         // sum_2
+        // t2_on_t1 = l_l - l_{delta_{2,3}} // # of edges in S1 whose timestamp is between t(S2[i]) - delta_{1,3} + delta_{2,3} and t(S2[i])
         VertexEdgeId t2_on_t1 = t_graph.edgeTimeIntervalCount(t1_start_pos, t1_end_pos, t_graph.times_[t2_pos] + delta2_ - delta_ + 1, t_graph.times_[t2_pos]);
+        // edge_count[t2_on_t3_plus_delta2  + t2_pos - t2_start_pos] = EC([t(S2[i]), t(S2[i]+delta_{2,3})], S3)
         sum_2 += t2_on_t1 * edge_count[t2_on_t3_plus_delta2  + t2_pos - t2_start_pos];
 
         // sum_1
-
+        // (start) l_f = LOWERBOUND(t(S2[i]) - delta_{1,2})
+        // (finish) l_{delta_{2,3}} = UPPERBOND(t(S2[i]) - delta_{1,3} + delta_{2,3})
         VertexEdgeId start = t_graph.edgeTimeMinLimitSearch(t1_start_pos, t1_end_pos, t_graph.times_[t2_pos] - delta1_);
         VertexEdgeId finish = t_graph.edgeTimeMaxLimitSearch(t1_start_pos, t1_end_pos, t_graph.times_[t2_pos] + delta2_ - delta_);
 
@@ -181,15 +185,15 @@ Count MotifCounter::countCaseA(CSRTemporalGraph &t_graph,
         finish -= t1_start_pos;
  
 
-
+        // cur_sum += CEC_{+delta_{1,3}}(S1[l_f: l_{delta_{2,3}}])
         Count cur_sum = edge_count_cum[t1_on_t3_plus_delta + finish - 1] -
                         edge_count_cum[t1_on_t3_plus_delta + start] +
                         edge_count[t1_on_t3_plus_delta + start];
-
+        // cur_sum -= CEC_{inf}S1[l_f: l_{delta_{2,3}}])
         cur_sum -= edge_count_cum[t1_on_t3_plus_inf + finish - 1] -
             edge_count_cum[t1_on_t3_plus_inf + start] +
             edge_count[t1_on_t3_plus_inf + start];
-
+        // cur_sum += (l_l - l_f + 1) * EC([t(S2[i]), inf], S3) // where is the +1 though??
         cur_sum += (finish - start) * edge_count[t2_on_t3_plus_inf + t2_pos - t2_start_pos];
 
         sum_1 += cur_sum;
@@ -362,7 +366,7 @@ Count MotifCounter::countCaseC(CSRTemporalGraph &t_graph,
 
 void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_graph, TemporalTime delta, TemporalTime delta1, TemporalTime delta2)
 {
-    CSRGraph mult_graph = t_graph.extractMultGraph();
+    CSRGraph mult_graph = t_graph.extractMultGraph(); // mult_graph is the temporal graph without temporal mutiplicity
     VertexEdgeId highest_mult = 0;
     for (VertexEdgeId i = 0; i < mult_graph.num_edges_; i++)
         highest_mult = max(highest_mult, mult_graph.temporal_start_pos_[i+1] - mult_graph.temporal_start_pos_[i]);
@@ -384,28 +388,33 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
     for(int i=0; i < 64; i++)
         index_array[i] = i * highest_mult; // for each type of edge count we reserve highest_mult many spaces.
 
+    Count cnt = 0;
 
     for (VertexEdgeId i=0; i < s_dag.num_vertices_; i++)
     {
         VertexEdgeId u = i;
         for (VertexEdgeId j = s_dag.offsets_[i]; j < s_dag.offsets_[i+1]; j++)
         {
-            VertexEdgeId v = s_dag.nbrs_[j];
+            VertexEdgeId v = s_dag.nbrs_[j]; // neighbor of u
             for (VertexEdgeId k = j+1; k < s_dag.offsets_[i+1]; k++)
             {
-                VertexEdgeId w = s_dag.nbrs_[k];
+                VertexEdgeId w = s_dag.nbrs_[k]; // neighbor of u
                 if(w == v)
                     continue;
 
-                VertexEdgeId w_index = s_dag.getEdgeIndx(v,w);
+                VertexEdgeId w_index = s_dag.getEdgeIndx(v,w); // check if w is a neigh of v
                 if(w_index == -1)
                     continue;
                 
                 // we are looking at satic triangle <u,v,w>
 
                 static_triangles_count_++;
-                              
 
+                // Timer begin
+                Timer t;
+                t.Start();
+                              
+                // v is the mult_graph_indx_u_v's neighbor in mult_graph
                 VertexEdgeId mult_graph_indx_u_v = mult_graph.getEdgeIndx(u, v);
                 VertexEdgeId mult_graph_indx_u_w = mult_graph.getEdgeIndx(u, w);
                 VertexEdgeId mult_graph_indx_v_u = mult_graph.getEdgeIndx(v, u);
@@ -441,7 +450,8 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
                 
 
                 // we are looking at a triangle u,v,w. Directions in the degeneracy DAG are (u,v), (u,w), and (v,w)
-                
+                // p: 6 directions in u->v, v->u, u->w, w->u, v->w, w->v
+                // q: 8 patterns, T1-T8
                 for(int p = 0; p < 6; p++)
                     for(int q = 0; q < 8; q++)
                         triangle_motif_counts_[p][q] = 0;
@@ -451,6 +461,7 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
                 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
                 // for each temporal edge with time t in (u,v) from (v,w)
+                // search from (v,w) edge set, whose timestamp is within the time rage related to t(u,v)
                 populateEdgeCount(t_graph, start_pos_u_v, end_pos_u_v, start_pos_v_w, end_pos_v_w,
                                 index_array[0], index_array[1], index_array[2], index_array[3], index_array[32], index_array[40], index_array[48], index_array[56]);
 
@@ -552,6 +563,7 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
              
                 // /////////////////////////////////////////////////////////////////////
                 // //A1 Dir D7: M4
+                // D7: v->u, u->w, w->v
                 triangle_motif_counts_[0][6] = countCaseA(t_graph,
                             start_pos_v_u, end_pos_v_u,
                             start_pos_u_w, end_pos_u_w,
@@ -1018,6 +1030,7 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
                         VertexEdgeId equals_v_w = t_graph.edgeTimeIntervalCount(start_pos_v_w, end_pos_v_w, t_graph.times_[t_pos], t_graph.times_[t_pos]);
                         if(equals_v_w > 0)
                         {
+                            cout << "somthing" << endl;
                             motif_counts_[2][3] -= equals_w_u * equals_v_w;
                             motif_counts_[3][3] -= equals_w_u * equals_v_w;
                             motif_counts_[4][3] -= equals_w_u * equals_v_w;
@@ -1039,6 +1052,7 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
                         VertexEdgeId equals_w_v = t_graph.edgeTimeIntervalCount(start_pos_w_v, end_pos_w_v, t_graph.times_[t_pos], t_graph.times_[t_pos]);
                         if(equals_w_v > 0)
                         {
+                            cout << "somthing" << endl;
                             motif_counts_[2][6] -= equals_u_w * equals_w_v;
                             motif_counts_[3][6] -= equals_u_w * equals_w_v;
                             motif_counts_[4][6] -= equals_u_w * equals_w_v;
@@ -1046,9 +1060,35 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
                         }
                     }
                 }
+
+                t.Stop();
+                
+                bool useless = true;
+                for(int i=0; i < 6; i++)
+                {
+                    for(int j=0; j < 8; j++)
+                    {
+                        if(triangle_motif_counts_[i][j] != 0)
+                        {
+                            useless = false;
+                            cnt += triangle_motif_counts_[i][j];
+                        }
+                    }
+                }
+                if (useless)
+                {
+                    useless_static_triangles_++;
+                    useless_time_ += t.Millisecs();
+                }
+                else
+                {
+                    useful_time_ += t.Millisecs();
+                }
             }
         }
+        
     }
+    cout << "total triangle cnt: " << cnt << endl;
 
 
     // // case A1 (\pi_1)

@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
             benchmarking = true;
         }
     }
-    const int NUM_TRIAL = 10;
+    const int NUM_TRIAL = 1;
     
     if(delta > delta1 + delta2)  // difference between first and third edge cannot be more than the sum
         delta = delta1 + delta2; // of difference between first and second edges and the difference between second and third edges
@@ -71,8 +71,11 @@ int main(int argc, char *argv[])
     cout << "Number of edges: " << csr_temporal_graph.num_edges_ << endl;
     cout << "Number of static edges: " << csr_dag.out_edge_dag_.num_edges_ << endl;
     cout << "Number of static triangles: " << motif_counter.static_triangles_count_ << endl;
+    cout << "Number of useless static triangles: " << motif_counter.useless_static_triangles_ << endl;
     cout << "Max multiplicity in one direction on a pair: " << motif_counter.highest_mult_ << endl;
     cout << "Avg multiplicity on a pair: " << csr_temporal_graph.num_edges_ / csr_dag.out_edge_dag_.num_edges_ << endl;
+    cout << "Time on useless static triangles: " << motif_counter.useless_time_ << endl;
+    cout << "Time on useful static triangles: " << motif_counter.useful_time_ << endl;
     csr_temporal_graph.printTimeSpan();
 
     // motif_counter.printCounts();
@@ -97,19 +100,52 @@ int main(int argc, char *argv[])
         Timer t;
         double avg_time = 0;
         TemporalGraph temporal_graph = loadTemporalGraph(argv[1]);  // read the input temporal graph
+        Timer detailed_t[8];
+        double detailed_avg_time[8] = {0};
         t.Start();
         for(int trial = 0; trial < NUM_TRIAL; trial++)
         {
+            detailed_t[0].Start();
             Graph static_graph = temporal_graph.ExtractStaticGraph();   // extract the static graph
+            detailed_t[0].Stop();
+            detailed_avg_time[0] += detailed_t[0].Millisecs();
+            
+            detailed_t[1].Start();
             CSRGraph static_csr_graph = static_graph.convertToCSR();   // convert the static graph into CSR format
+            detailed_t[1].Stop();
+            detailed_avg_time[1] += detailed_t[1].Millisecs();
+
+            detailed_t[2].Start();
             CSRTemporalGraph csr_temporal_graph = temporal_graph.convertToCSR();  // convert the input temporal graph into CSR format
+            detailed_t[2].Stop();
+            detailed_avg_time[2] += detailed_t[2].Millisecs();
+
+            detailed_t[3].Start();
             static_csr_graph.findDegenOrdering();  // find the degeneracy ordering of the static graph (CSR format)
-        
+            detailed_t[3].Stop();
+            detailed_avg_time[3] += detailed_t[3].Millisecs();
+
+            detailed_t[4].Start();
             csr_temporal_graph.relabelByDegenOrder(static_csr_graph.degen_order_, static_csr_graph.sort_by_degen_);  // relabel vertices of the temporal graph (CSR format) by the degeneracy ordering of the static graph
+            detailed_t[4].Stop();
+            detailed_avg_time[4] += detailed_t[4].Millisecs();
+            
+            detailed_t[5].Start();
             static_csr_graph.relabelByDegenOrder();   // relabel vertices of the static graph (CSR format) by the degenracy ordering of the static graph
+            detailed_t[5].Stop();
+            detailed_avg_time[5] += detailed_t[5].Millisecs();
+            
+            detailed_t[6].Start();
             CSRDAG csr_dag(static_csr_graph);
+            detailed_t[6].Stop();
+            detailed_avg_time[6] += detailed_t[6].Millisecs();
+
+
+            detailed_t[7].Start();
             MotifCounter motif_counter;
             motif_counter.countTemporalTriangle(csr_dag.out_edge_dag_, csr_temporal_graph, delta, delta1, delta2);
+            detailed_t[7].Stop();
+            detailed_avg_time[7] += detailed_t[7].Millisecs();
 
             // free memory
             static_graph.deleteGraph();
@@ -117,13 +153,18 @@ int main(int argc, char *argv[])
             csr_temporal_graph.deleteGraph();
             motif_counter.freeMemory();
         }
+        // free memory
+        temporal_graph.deleteGraph();
+
         t.Stop();
         avg_time += t.Millisecs();
         avg_time /= (double)NUM_TRIAL;
         cout << "Avg of " << NUM_TRIAL << " trials temporal triangle count (ms) is: " << avg_time << " ms." << endl;
-
-        // free memory
-        temporal_graph.deleteGraph();
+        for(int i=0; i < 8; i++)
+        {
+            cout << detailed_avg_time[i] / (double)NUM_TRIAL << endl;
+        }
+        
 
     }
 

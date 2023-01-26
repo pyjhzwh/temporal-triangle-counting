@@ -1,3 +1,5 @@
 *.o
 ettc
 graphs/*
+*.txt
+*perf*
