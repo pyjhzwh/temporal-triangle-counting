@@ -388,7 +388,7 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
     for(int i=0; i < 64; i++)
         index_array[i] = i * highest_mult; // for each type of edge count we reserve highest_mult many spaces.
 
-    Count cnt = 0;
+    // Count cnt = 0;
 
     for (VertexEdgeId i=0; i < s_dag.num_vertices_; i++)
     {
@@ -410,9 +410,9 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
 
                 static_triangles_count_++;
 
-                // Timer begin
-                Timer t;
-                t.Start();
+                // // Timer begin
+                // Timer t;
+                // t.Start();
                               
                 // v is the mult_graph_indx_u_v's neighbor in mult_graph
                 VertexEdgeId mult_graph_indx_u_v = mult_graph.getEdgeIndx(u, v);
@@ -1061,8 +1061,8 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
                     }
                 }
 
-                t.Stop();
-                
+                // t.Stop();
+                Count temp_motif_cnts = 0; // # of triangle counts found within this static triangle
                 bool useless = true;
                 for(int i=0; i < 6; i++)
                 {
@@ -1071,24 +1071,33 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
                         if(triangle_motif_counts_[i][j] != 0)
                         {
                             useless = false;
-                            cnt += triangle_motif_counts_[i][j];
+                            temp_motif_cnts += triangle_motif_counts_[i][j];
                         }
                     }
                 }
                 if (useless)
                 {
                     useless_static_triangles_++;
-                    useless_time_ += t.Millisecs();
+                    // useless_time_ += t.Millisecs();
                 }
                 else
                 {
-                    useful_time_ += t.Millisecs();
+                    // update temporal_static_cnt_ map
+                    if(temporal_static_cnt_.count(temp_motif_cnts) == 0)
+                    {
+                        temporal_static_cnt_[temp_motif_cnts] = 1;
+                    }
+                    else
+                    {
+                        temporal_static_cnt_[temp_motif_cnts]++;
+                    }
+                    // useful_time_ += t.Millisecs();
                 }
             }
         }
         
     }
-    cout << "total triangle cnt: " << cnt << endl;
+    // cout << "total triangle cnt: " << cnt << endl;
 
 
     // // case A1 (\pi_1)

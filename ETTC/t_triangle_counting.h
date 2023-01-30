@@ -22,6 +22,9 @@ class MotifCounter
     Count useless_static_triangles_ = 0; // count the number of static triangles that we iterate but turns out not to be any of the T1-T8
     double useless_time_ = 0; // time spend on useless static triangles
     double useful_time_ = 0; // time spend on useful static triangles
+    // key: temporal triangle cnt that <val> # of static triangle found
+    // val: how many static triangles has contribute the <key> # of temporal triangles
+    std::map<Count, Count> temporal_static_cnt_; 
 
     Count motif_type_counts_[8] = {0};  // counts of each temporal triangle type
     Count motif_counts_[6][8] = {{0}};  // at row i column j: motif counts for temporal ordering i and orientation j

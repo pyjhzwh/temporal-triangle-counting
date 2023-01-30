@@ -1,6 +1,8 @@
 #include "ETTC/Graph.h"
 #include "ETTC/t_triangle_counting.h"
 #include "timer.h"
+#include <string.h>
+
 
 using namespace std;
 
@@ -77,6 +79,21 @@ int main(int argc, char *argv[])
     cout << "Time on useless static triangles: " << motif_counter.useless_time_ << endl;
     cout << "Time on useful static triangles: " << motif_counter.useful_time_ << endl;
     csr_temporal_graph.printTimeSpan();
+    // for(auto x: motif_counter.temporal_static_cnt_)
+    // {
+    //     cout << x.first << " " << x.second << endl;
+    // }
+    const char s[2] = "/";
+    char* token = strtok(argv[1], s);
+    token = strtok(NULL, "/");
+    token = strtok(token, ".");
+    const char *path = strcat(token, "_statistics.txt");
+    FILE* output_file = fopen(path, "w");
+    for(auto x: motif_counter.temporal_static_cnt_)
+    {
+        fprintf(output_file, "%ld %ld\n", x.first, x.second);
+    }
+    fclose(output_file);
 
     // motif_counter.printCounts();
     motif_counter.printCountsFile(argv[5]);
@@ -160,11 +177,10 @@ int main(int argc, char *argv[])
         avg_time += t.Millisecs();
         avg_time /= (double)NUM_TRIAL;
         cout << "Avg of " << NUM_TRIAL << " trials temporal triangle count (ms) is: " << avg_time << " ms." << endl;
-        for(int i=0; i < 8; i++)
-        {
-            cout << detailed_avg_time[i] / (double)NUM_TRIAL << endl;
-        }
-        
+        // for(int i=0; i < 8; i++)
+        // {
+        //     cout << detailed_avg_time[i] / (double)NUM_TRIAL << endl;
+        // }
 
     }
 
