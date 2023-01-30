@@ -1,6 +1,6 @@
 INCDIR =./ETTC
 CC = g++
-CFLAGS=-I$(INCDIR) -Wall -std=c++11 -g -O3
+CFLAGS=-I$(INCDIR) -Wall -std=c++11 -g -O3 -fsanitize=address
 
 ODIR=./
 # LDIR =../lib

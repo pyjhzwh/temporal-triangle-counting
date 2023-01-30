@@ -142,6 +142,7 @@ Graph TemporalGraph::ExtractStaticGraph()
   }
  
   graph.sortEdges();
+  middler.deleteGraph();
 
   return graph;
 }
@@ -379,6 +380,11 @@ void CSRGraph::deleteGraph()
 {
   delete[] offsets_;
   delete[] nbrs_;
+  delete[] temporal_start_pos_;
+  if (degen_order_ != nullptr)
+    delete[] degen_order_;
+  if (sort_by_degen_ != nullptr)
+    delete[] sort_by_degen_;
 }
 
 
@@ -570,8 +576,8 @@ void CSRTemporalGraph::deleteGraph()
 
 CSRDAG::CSRDAG(CSRGraph &csr_graph) // contains two CSR graph where each of them is a DAG. One store the out-edges for each vertex, the other store the in-edges.
 {
-  out_edge_dag_ = CSRGraph(csr_graph.num_vertices_, csr_graph.num_edges_/2);
-  in_edge_dag_ = CSRGraph(csr_graph.num_vertices_, csr_graph.num_edges_/2);
+  out_edge_dag_ = CSRGraph(csr_graph.num_vertices_, csr_graph.num_edges_);
+  in_edge_dag_ = CSRGraph(csr_graph.num_vertices_, csr_graph.num_edges_);
 
   out_edge_dag_.offsets_[0] = 0;
   in_edge_dag_.offsets_[0] = 0;

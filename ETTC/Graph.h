@@ -149,6 +149,11 @@ class CSRDAG
     CSRDAG(){};
     CSRDAG(CSRGraph &csr_graph);
 
+    ~CSRDAG() {
+      out_edge_dag_.deleteGraph();
+      in_edge_dag_.deleteGraph(); 
+    }
+
 };
 
 class Graph
