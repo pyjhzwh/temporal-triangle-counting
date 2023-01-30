@@ -87,8 +87,8 @@ int main(int argc, char *argv[])
     char* token = strtok(argv[1], s);
     token = strtok(NULL, "/");
     token = strtok(token, ".");
-    const char *path = strcat(token, "_statistics.txt");
-    FILE* output_file = fopen(path, "w");
+    auto path = "statistics/" + string(token) + ".txt";
+    FILE* output_file = fopen(path.c_str(), "w");
     for(auto x: motif_counter.temporal_static_cnt_)
     {
         fprintf(output_file, "%ld %ld\n", x.first, x.second);
