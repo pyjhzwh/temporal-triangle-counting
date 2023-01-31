@@ -187,6 +187,7 @@ CSRGraph::CSRGraph(VertexEdgeId num_vertices, VertexEdgeId num_edges): num_verti
   nbrs_ = new VertexEdgeId[num_edges_];
   degen_order_ = nullptr;
   sort_by_degen_ = nullptr;
+  temporal_start_pos_ = nullptr;
 }
 
 VertexEdgeId CSRGraph::maxDegree()
@@ -382,7 +383,8 @@ void CSRGraph::deleteGraph()
 {
   delete[] offsets_;
   delete[] nbrs_;
-  delete[] temporal_start_pos_;
+  if (temporal_start_pos_ = nullptr)
+    delete[] temporal_start_pos_;
   if (degen_order_ != nullptr)
     delete[] degen_order_;
   if (sort_by_degen_ != nullptr)
