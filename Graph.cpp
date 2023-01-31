@@ -185,6 +185,8 @@ CSRGraph::CSRGraph(VertexEdgeId num_vertices, VertexEdgeId num_edges): num_verti
 {
   offsets_ = new VertexEdgeId[num_vertices_+1];
   nbrs_ = new VertexEdgeId[num_edges_];
+  degen_order_ = nullptr;
+  sort_by_degen_ = nullptr;
 }
 
 VertexEdgeId CSRGraph::maxDegree()
