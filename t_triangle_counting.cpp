@@ -406,6 +406,8 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
     Count max_static_mult = 0;
     Count min_static_mult = 1000;
 
+    TemporalTime max_delta = max({delta_, delta1_, delta2_});
+
     for (VertexEdgeId i=0; i < s_dag.num_vertices_; i++)
     {
         VertexEdgeId u = i;
@@ -466,6 +468,93 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
 
 
                 Count sum_mult = (mult_u_v + mult_v_u) * (mult_u_w + mult_w_u) * (mult_v_w + mult_w_v);
+
+                TemporalTime start_time_u_v = start_pos_u_v == -1 ? -1 : t_graph.times_[start_pos_u_v];
+                TemporalTime start_time_u_w = start_pos_u_w == -1 ? -1 : t_graph.times_[start_pos_u_w];
+                TemporalTime start_time_v_u = start_pos_v_u == -1 ? -1 : t_graph.times_[start_pos_v_u];
+                TemporalTime start_time_v_w = start_pos_v_w == -1 ? -1 : t_graph.times_[start_pos_v_w];
+                TemporalTime start_time_w_u = start_pos_w_u == -1 ? -1 : t_graph.times_[start_pos_w_u];
+                TemporalTime start_time_w_v = start_pos_w_v == -1 ? -1 : t_graph.times_[start_pos_w_v];
+
+                TemporalTime end_time_u_v = end_pos_u_v == -1 ? -1 : t_graph.times_[end_pos_u_v-1];
+                TemporalTime end_time_u_w = end_pos_u_w == -1 ? -1 : t_graph.times_[end_pos_u_w-1];
+                TemporalTime end_time_v_u = end_pos_v_u == -1 ? -1 : t_graph.times_[end_pos_v_u-1];
+                TemporalTime end_time_v_w = end_pos_v_w == -1 ? -1 : t_graph.times_[end_pos_v_w-1];
+                TemporalTime end_time_w_u = end_pos_w_u == -1 ? -1 : t_graph.times_[end_pos_w_u-1];
+                TemporalTime end_time_w_v = end_pos_w_v == -1 ? -1 : t_graph.times_[end_pos_w_v-1];
+
+                if (
+                    (
+                        ( start_time_u_v == -1 || 
+                            (
+                                ( (start_time_v_w == -1) || (start_time_u_v > end_time_v_w + max_delta) || (end_time_u_v + max_delta < start_time_v_w) ) &&
+                                ( (start_time_w_v == -1) || (start_time_u_v > end_time_w_v + max_delta) || (end_time_u_v + max_delta < start_time_w_v) )
+                            ) ||
+                            (
+                                ( (start_time_u_w == -1) || (start_time_u_v > end_time_u_w + max_delta) || (end_time_u_v + max_delta < start_time_u_w) ) &&
+                                ( (start_time_w_u == -1) || (start_time_u_v > end_time_w_u + max_delta) || (end_time_u_v + max_delta < start_time_w_u) )
+                            )
+                        ) &&
+                        ( start_time_v_u == -1 || 
+                            (
+                                ( (start_time_v_w == -1) || (start_time_v_u > end_time_v_w + max_delta) || (end_time_v_u + max_delta < start_time_v_w) ) &&
+                                ( (start_time_w_v == -1) || (start_time_v_u > end_time_w_v + max_delta) || (end_time_v_u + max_delta < start_time_w_v) )
+                            ) ||
+                            (
+                                ( (start_time_u_w == -1) || (start_time_v_u > end_time_u_w + max_delta) || (end_time_v_u + max_delta < start_time_u_w) ) &&
+                                ( (start_time_w_u == -1) || (start_time_v_u > end_time_w_u + max_delta) || (end_time_v_u + max_delta < start_time_w_u) )
+                            )
+                        )
+                    ) ||
+                    (
+                        ( start_time_u_w == -1 || 
+                            (
+                                ( (start_time_v_w == -1) || (start_time_u_w > end_time_v_w + max_delta) || (end_time_u_w + max_delta < start_time_v_w) ) &&
+                                ( (start_time_w_v == -1) || (start_time_u_w > end_time_w_v + max_delta) || (end_time_u_w + max_delta < start_time_w_v) )
+                            ) ||
+                            (
+                                ( (start_time_u_v == -1) || (start_time_u_w > end_time_u_v + max_delta) || (end_time_u_w + max_delta < start_time_u_v) ) &&
+                                ( (start_time_v_u == -1) || (start_time_u_w > end_time_v_u + max_delta) || (end_time_u_w + max_delta < start_time_v_u) )
+                            )
+                        ) &&
+                        ( start_time_w_u == -1 || 
+                            (
+                                ( (start_time_v_w == -1) || (start_time_w_u > end_time_v_w + max_delta) || (end_time_w_u + max_delta < start_time_v_w) ) &&
+                                ( (start_time_w_v == -1) || (start_time_w_u > end_time_w_v + max_delta) || (end_time_w_u + max_delta < start_time_w_v) )
+                            ) ||
+                            (
+                                ( (start_time_u_v == -1) || (start_time_w_u > end_time_u_v + max_delta) || (end_time_w_u + max_delta < start_time_u_v) ) &&
+                                ( (start_time_v_u == -1) || (start_time_w_u > end_time_v_u + max_delta) || (end_time_w_u + max_delta < start_time_v_u) )
+                            )
+                        )
+                    ) ||
+                    (
+                        ( start_time_w_v == -1 || 
+                            (
+                                ( (start_time_u_w == -1) || (start_time_w_v > end_time_u_w + max_delta) || (end_time_w_v + max_delta < start_time_u_w) ) &&
+                                ( (start_time_w_u == -1) || (start_time_w_v > end_time_w_u + max_delta) || (end_time_w_v + max_delta < start_time_w_u) )
+                            ) ||
+                            (
+                                ( (start_time_u_v == -1) || (start_time_w_v > end_time_u_v + max_delta) || (end_time_w_v + max_delta < start_time_u_v) ) &&
+                                ( (start_time_v_u == -1) || (start_time_w_v > end_time_v_u + max_delta) || (end_time_w_v + max_delta < start_time_v_u) )
+                            )
+                        ) &&
+                        ( start_time_v_w == -1 || 
+                            (
+                                ( (start_time_u_w == -1) || (start_time_v_w > end_time_u_w + max_delta) || (end_time_v_w + max_delta < start_time_u_w) ) &&
+                                ( (start_time_w_u == -1) || (start_time_v_w > end_time_w_u + max_delta) || (end_time_v_w + max_delta < start_time_w_u) )
+                            ) ||
+                            (
+                                ( (start_time_u_v == -1) || (start_time_v_w > end_time_u_v + max_delta) || (end_time_v_w + max_delta < start_time_u_v) ) &&
+                                ( (start_time_v_u == -1) || (start_time_v_w > end_time_v_u + max_delta) || (end_time_v_w + max_delta < start_time_v_u) )
+                            )
+                        )
+                    )
+                )
+                {
+                    skip_useless_cnt++;
+                    continue;
+                }
                 
 
                 // we are looking at a triangle u,v,w. Directions in the degeneracy DAG are (u,v), (u,w), and (v,w)

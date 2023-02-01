@@ -81,6 +81,8 @@ int main(int argc, char *argv[])
     csr_temporal_graph.printTimeSpan();
     cout << "Avg multiplicity of useless static triangles: " << (double) motif_counter.useless_mult_cnt_ / motif_counter.useless_static_triangles_ << endl;
     cout << "Avg multiplicity of useful static triangles: " << (double) motif_counter.useful_mult_cnt_ / (motif_counter.static_triangles_count_ - motif_counter.useless_static_triangles_) << endl;
+    cout << "Number of useless static triangles: " << motif_counter.skip_useless_cnt << endl;
+    
     // const char s[2] = "/";
     // char* token = strtok(argv[1], s);
     // token = strtok(NULL, "/");
