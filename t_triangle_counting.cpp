@@ -157,7 +157,11 @@ Count MotifCounter::countCaseA(CSRTemporalGraph &t_graph,
 {
     
     Count sum = 0, sum_1 = 0, sum_2 = 0;
-
+    // if any of e1, e2 and e3 multiplicity is zero, the count must be zero, could speedup ~18%
+    if ((t1_end_pos - t1_start_pos == 0) || (t2_end_pos - t2_start_pos == 0 ) || (t3_end_pos - t3_start_pos == 0 ))
+    {
+        return 0;
+    }
 
     for (VertexEdgeId t2_pos = t2_start_pos; t2_pos < t2_end_pos; t2_pos++)
     {
@@ -218,7 +222,11 @@ Count MotifCounter::countCaseB(CSRTemporalGraph &t_graph,
 {
 
     Count sum = 0, sum_1 = 0, sum_2 = 0, sum_3 = 0;
-
+    // if any of e1, e2 and e3 multiplicity is zero, the count must be zero, could speedup ~18%
+    if ((t1_end_pos - t1_start_pos == 0) || (t2_end_pos - t2_start_pos == 0 ) || (t3_end_pos - t3_start_pos == 0 ))
+    {
+        return 0;
+    }
 
     for (VertexEdgeId t1_pos = t1_start_pos; t1_pos < t1_end_pos; t1_pos++)
     {
@@ -320,6 +328,12 @@ Count MotifCounter::countCaseC(CSRTemporalGraph &t_graph,
 {
     
     Count sum = 0, sum_1 = 0, sum_2 = 0;
+
+    // if any of e1, e2 and e3 multiplicity is zero, the count must be zero, could speedup ~18%
+    if ((t1_end_pos - t1_start_pos == 0) || (t2_end_pos - t2_start_pos == 0 ) || (t3_end_pos - t3_start_pos == 0 ))
+    {
+        return 0;
+    }
 
     for (VertexEdgeId t2_pos = t2_start_pos; t2_pos < t2_end_pos; t2_pos++)
     {
