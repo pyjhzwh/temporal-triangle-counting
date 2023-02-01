@@ -2,6 +2,7 @@
 
 make -j4
 GRAPH="CollegeMsg"
+delta=3600 # 60 3600 86400
 
 # First preprocess input graphs from .el to .txt
 # for GRAPH in "CollegeMsg" "email-Eu-core-temporal" "sx-mathoverflow" "sx-askubuntu" "sx-superuser" "wiki-talk-temporal" "sx-stackoverflow"
@@ -10,9 +11,11 @@ GRAPH="CollegeMsg"
 # done
 
 # Mine triangles in GRAPH with benchmarking (-b)
-# for GRAPH in "CollegeMsg" "email-Eu-core-temporal" "sx-mathoverflow" "sx-askubuntu" "sx-superuser" "wiki-talk-temporal" "sx-stackoverflow"
-for GRAPH in "CollegeMsg" "email-Eu-core-temporal" "wiki-talk-temporal" "sx-stackoverflow"
-do
-    # echo "Graph="${GRAPH} "delta=3600"
-    ./ettc graphs/${GRAPH}.txt 3600 3600 3600 ${GRAPH}_out.txt #-b | tail -1
-done
+#for GRAPH in "CollegeMsg" "email-Eu-core-temporal" "sx-mathoverflow" "sx-askubuntu" "sx-superuser" "wiki-talk-temporal" "sx-stackoverflow"
+#do
+    #for delta in 60 3600 86400
+    #do
+        echo "Graph="${GRAPH} "delta="${delta}
+        ./ettc graphs/${GRAPH}.txt ${delta} ${delta} ${delta} ${GRAPH}_out.txt -b #| tail -1
+    #done
+#done

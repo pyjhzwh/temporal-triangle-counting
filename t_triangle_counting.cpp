@@ -389,6 +389,8 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
         index_array[i] = i * highest_mult; // for each type of edge count we reserve highest_mult many spaces.
 
     // Count cnt = 0;
+    Count max_static_mult = 0;
+    Count min_static_mult = 1000;
 
     for (VertexEdgeId i=0; i < s_dag.num_vertices_; i++)
     {
@@ -447,6 +449,9 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
                 VertexEdgeId mult_v_w = start_pos_v_w == -1 ? 0 : end_pos_v_w - start_pos_v_w;
                 VertexEdgeId mult_w_u = start_pos_w_u == -1 ? 0 : end_pos_w_u - start_pos_w_u;
                 VertexEdgeId mult_w_v = start_pos_w_v == -1 ? 0 : end_pos_w_v - start_pos_w_v;
+
+
+                Count sum_mult = (mult_u_v + mult_v_u) * (mult_u_w + mult_w_u) * (mult_v_w + mult_w_v);
                 
 
                 // we are looking at a triangle u,v,w. Directions in the degeneracy DAG are (u,v), (u,w), and (v,w)
@@ -1071,34 +1076,44 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
                         if(triangle_motif_counts_[i][j] != 0)
                         {
                             useless = false;
-                            temp_motif_cnts += triangle_motif_counts_[i][j];
+                            // temp_motif_cnts += triangle_motif_counts_[i][j];
                         }
                     }
                 }
                 if (useless)
                 {
                     useless_static_triangles_++;
+                    useless_mult_cnt_ += sum_mult;
                     // useless_time_ += t.Millisecs();
                 }
                 else
                 {
+                    // if(sum_mult == 0)
+                    // {
+                    //     cout << "error" << endl;
+                    //     return;
+                    // }
+                    useful_mult_cnt_ += sum_mult;
                     // update temporal_static_cnt_ map
-                    if(temporal_static_cnt_.count(temp_motif_cnts) == 0)
-                    {
-                        temporal_static_cnt_[temp_motif_cnts] = 1;
-                    }
-                    else
-                    {
-                        temporal_static_cnt_[temp_motif_cnts]++;
-                    }
+                    // if(temporal_static_cnt_.count(temp_motif_cnts) == 0)
+                    // {
+                    //     temporal_static_cnt_[temp_motif_cnts] = 1;
+                    // }
+                    // else
+                    // {
+                    //     temporal_static_cnt_[temp_motif_cnts]++;
+                    // }
                     // useful_time_ += t.Millisecs();
                 }
+                // max_static_mult = max(sum_mult, max_static_mult);
+                // min_static_mult = min(sum_mult, min_static_mult);
             }
         }
         
     }
     // cout << "total triangle cnt: " << cnt << endl;
-
+    // cout << "max multiplicity of a static triangle: " << max_static_mult << endl;
+    // cout << "min multiplicity of a static triangle: " << min_static_mult << endl;
 
     // // case A1 (\pi_1)
     // cout << endl;
@@ -1149,6 +1164,8 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
     motif_type_counts_[5] = motif_counts_[0][1] + motif_counts_[1][4] + motif_counts_[2][5] + motif_counts_[3][7] + motif_counts_[4][0] + motif_counts_[5][2];
     motif_type_counts_[6] = motif_counts_[0][0] + motif_counts_[1][2] + motif_counts_[2][4] + motif_counts_[3][1] + motif_counts_[4][7] + motif_counts_[5][5];
     motif_type_counts_[7] = motif_counts_[0][3] + motif_counts_[1][6] + motif_counts_[2][6] + motif_counts_[3][3] + motif_counts_[4][3] + motif_counts_[5][6];
+
+    mult_graph.deleteGraph(); // free memory
 }
 
 

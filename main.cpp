@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
             benchmarking = true;
         }
     }
-    const int NUM_TRIAL = 1;
+    const int NUM_TRIAL = 10;
     
     if(delta > delta1 + delta2)  // difference between first and third edge cannot be more than the sum
         delta = delta1 + delta2; // of difference between first and second edges and the difference between second and third edges
@@ -76,24 +76,22 @@ int main(int argc, char *argv[])
     cout << "Number of useless static triangles: " << motif_counter.useless_static_triangles_ << endl;
     cout << "Max multiplicity in one direction on a pair: " << motif_counter.highest_mult_ << endl;
     cout << "Avg multiplicity on a pair: " << csr_temporal_graph.num_edges_ / csr_dag.out_edge_dag_.num_edges_ << endl;
-    cout << "Time on useless static triangles: " << motif_counter.useless_time_ << endl;
-    cout << "Time on useful static triangles: " << motif_counter.useful_time_ << endl;
+    // cout << "Time on useless static triangles: " << motif_counter.useless_time_ << endl;
+    // cout << "Time on useful static triangles: " << motif_counter.useful_time_ << endl;
     csr_temporal_graph.printTimeSpan();
+    cout << "Avg multiplicity of useless static triangles: " << (double) motif_counter.useless_mult_cnt_ / motif_counter.useless_static_triangles_ << endl;
+    cout << "Avg multiplicity of useful static triangles: " << (double) motif_counter.useful_mult_cnt_ / (motif_counter.static_triangles_count_ - motif_counter.useless_static_triangles_) << endl;
+    // const char s[2] = "/";
+    // char* token = strtok(argv[1], s);
+    // token = strtok(NULL, "/");
+    // token = strtok(token, ".");
+    // auto path = "statistics/" + string(token) + ".txt";
+    // FILE* output_file = fopen(path.c_str(), "w");
     // for(auto x: motif_counter.temporal_static_cnt_)
     // {
-    //     cout << x.first << " " << x.second << endl;
+    //     fprintf(output_file, "%ld %ld\n", x.first, x.second);
     // }
-    const char s[2] = "/";
-    char* token = strtok(argv[1], s);
-    token = strtok(NULL, "/");
-    token = strtok(token, ".");
-    auto path = "statistics/" + string(token) + ".txt";
-    FILE* output_file = fopen(path.c_str(), "w");
-    for(auto x: motif_counter.temporal_static_cnt_)
-    {
-        fprintf(output_file, "%ld %ld\n", x.first, x.second);
-    }
-    fclose(output_file);
+    // fclose(output_file);
 
     // motif_counter.printCounts();
     motif_counter.printCountsFile(argv[5]);
