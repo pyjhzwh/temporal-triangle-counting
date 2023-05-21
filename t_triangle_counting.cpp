@@ -428,9 +428,9 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
 
                 static_triangles_count_++;
 
-                // // Timer begin
-                // Timer t;
-                // t.Start();
+                // Timer begin
+                Timer t;
+                t.Start();
                               
                 // v is the mult_graph_indx_u_v's neighbor in mult_graph
                 VertexEdgeId mult_graph_indx_u_v = mult_graph.getEdgeIndx(u, v);
@@ -482,6 +482,9 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
                 TemporalTime end_time_v_w = end_pos_v_w == -1 ? -1 : t_graph.times_[end_pos_v_w-1];
                 TemporalTime end_time_w_u = end_pos_w_u == -1 ? -1 : t_graph.times_[end_pos_w_u-1];
                 TemporalTime end_time_w_v = end_pos_w_v == -1 ? -1 : t_graph.times_[end_pos_w_v-1];
+
+                t.Stop();
+                times_[0] += t.Millisecs();
 
                 if (
                     (
@@ -567,7 +570,7 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
                 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 // Here we populate the auxilary arrays for edge interval counting
                 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+                t.Start();
                 // for each temporal edge with time t in (u,v) from (v,w)
                 // search from (v,w) edge set, whose timestamp is within the time rage related to t(u,v)
                 populateEdgeCount(t_graph, start_pos_u_v, end_pos_u_v, start_pos_v_w, end_pos_v_w,
@@ -601,10 +604,11 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
                 populateEdgeCount(t_graph, start_pos_w_u, end_pos_w_u, start_pos_w_v, end_pos_w_v,
                                 index_array[28], index_array[29], index_array[30], index_array[31], index_array[39], index_array[47], index_array[55], index_array[63]);
 
-
+                t.Stop();
+                times_[1] += t.Millisecs();
                 // Dir Di is the equivalent of ordering \rho_i in the paper 
                 // Mi is Triangle (motif) of type i: \Tau_i in the paper
-
+                t.Start();
                 // %%%%%%%%%%%%%%%%%%%%%%%%%                
                 //Case A1 (\pi_1)
                 // %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1169,7 +1173,9 @@ void MotifCounter::countTemporalTriangle(CSRGraph &s_dag, CSRTemporalGraph &t_gr
                     }
                 }
 
-                // t.Stop();
+                t.Stop();
+                times_[2] += t.Millisecs();
+
                 Count temp_motif_cnts = 0; // # of triangle counts found within this static triangle
                 bool useless = true;
                 for(int i=0; i < 6; i++)

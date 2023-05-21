@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     csr_temporal_graph.printTimeSpan();
     cout << "Avg multiplicity of useless static triangles: " << (double) motif_counter.useless_mult_cnt_ / motif_counter.useless_static_triangles_ << endl;
     cout << "Avg multiplicity of useful static triangles: " << (double) motif_counter.useful_mult_cnt_ / (motif_counter.static_triangles_count_ - motif_counter.useless_static_triangles_) << endl;
-    cout << "Number of useless static triangles: " << motif_counter.skip_useless_cnt << endl;
+    cout << "Number of useless static triangles skipped: " << motif_counter.skip_useless_cnt << endl;
     
     // const char s[2] = "/";
     // char* token = strtok(argv[1], s);
@@ -117,52 +117,60 @@ int main(int argc, char *argv[])
         Timer t;
         double avg_time = 0;
         TemporalGraph temporal_graph = loadTemporalGraph(argv[1]);  // read the input temporal graph
-        Timer detailed_t[8];
-        double detailed_avg_time[8] = {0};
+        // Timer detailed_t[8];
+        // double detailed_avg_time[8] = {0};
+        Timer other_t;
+        // double other_avg_time = 0;
+        // other, enumerate static, findindex, populate edge count, and countCase
+        double detailed_avg_time[5] = {0};
         t.Start();
         for(int trial = 0; trial < NUM_TRIAL; trial++)
         {
-            detailed_t[0].Start();
+            other_t.Start();
+            // detailed_t[0].Start();
             Graph static_graph = temporal_graph.ExtractStaticGraph();   // extract the static graph
-            detailed_t[0].Stop();
-            detailed_avg_time[0] += detailed_t[0].Millisecs();
+            // detailed_t[0].Stop();
+            // detailed_avg_time[0] += detailed_t[0].Millisecs();
             
-            detailed_t[1].Start();
+            // detailed_t[1].Start();
             CSRGraph static_csr_graph = static_graph.convertToCSR();   // convert the static graph into CSR format
-            detailed_t[1].Stop();
-            detailed_avg_time[1] += detailed_t[1].Millisecs();
+            // detailed_t[1].Stop();
+            // detailed_avg_time[1] += detailed_t[1].Millisecs();
 
-            detailed_t[2].Start();
+            // detailed_t[2].Start();
             CSRTemporalGraph csr_temporal_graph = temporal_graph.convertToCSR();  // convert the input temporal graph into CSR format
-            detailed_t[2].Stop();
-            detailed_avg_time[2] += detailed_t[2].Millisecs();
+            // detailed_t[2].Stop();
+            // detailed_avg_time[2] += detailed_t[2].Millisecs();
 
-            detailed_t[3].Start();
+            // detailed_t[3].Start();
             static_csr_graph.findDegenOrdering();  // find the degeneracy ordering of the static graph (CSR format)
-            detailed_t[3].Stop();
-            detailed_avg_time[3] += detailed_t[3].Millisecs();
+            // detailed_t[3].Stop();
+            // detailed_avg_time[3] += detailed_t[3].Millisecs();
 
-            detailed_t[4].Start();
+            // detailed_t[4].Start();
             csr_temporal_graph.relabelByDegenOrder(static_csr_graph.degen_order_, static_csr_graph.sort_by_degen_);  // relabel vertices of the temporal graph (CSR format) by the degeneracy ordering of the static graph
-            detailed_t[4].Stop();
-            detailed_avg_time[4] += detailed_t[4].Millisecs();
+            // detailed_t[4].Stop();
+            // detailed_avg_time[4] += detailed_t[4].Millisecs();
             
-            detailed_t[5].Start();
+            // detailed_t[5].Start();
             static_csr_graph.relabelByDegenOrder();   // relabel vertices of the static graph (CSR format) by the degenracy ordering of the static graph
-            detailed_t[5].Stop();
-            detailed_avg_time[5] += detailed_t[5].Millisecs();
+            // detailed_t[5].Stop();
+            // detailed_avg_time[5] += detailed_t[5].Millisecs();
             
-            detailed_t[6].Start();
+            // detailed_t[6].Start();
             CSRDAG csr_dag(static_csr_graph);
-            detailed_t[6].Stop();
-            detailed_avg_time[6] += detailed_t[6].Millisecs();
+            // detailed_t[6].Stop();
+            // detailed_avg_time[6] += detailed_t[6].Millisecs();
+            other_t.Stop();
+            detailed_avg_time[0] += other_t.Millisecs();
 
-
-            detailed_t[7].Start();
+            // detailed_t[7].Start();
             MotifCounter motif_counter;
             motif_counter.countTemporalTriangle(csr_dag.out_edge_dag_, csr_temporal_graph, delta, delta1, delta2);
-            detailed_t[7].Stop();
-            detailed_avg_time[7] += detailed_t[7].Millisecs();
+            // detailed_t[7].Stop();
+            // detailed_avg_time[7] += detailed_t[7].Millisecs();
+            for(int i = 0; i < 3 ; i++)
+                detailed_avg_time[i+2] += motif_counter.times_[i]; 
 
             // free memory
             static_graph.deleteGraph();
@@ -177,10 +185,20 @@ int main(int argc, char *argv[])
         avg_time += t.Millisecs();
         avg_time /= (double)NUM_TRIAL;
         cout << "Avg of " << NUM_TRIAL << " trials temporal triangle count (ms) is: " << avg_time << " ms." << endl;
-        // for(int i=0; i < 8; i++)
-        // {
-        //     cout << detailed_avg_time[i] / (double)NUM_TRIAL << endl;
-        // }
+        double sum_except_enumerate = 0;
+        for(int i=0; i < 5; i++)
+        {
+            detailed_avg_time[i] /= (double)NUM_TRIAL;
+            sum_except_enumerate += detailed_avg_time[i];
+        }
+        detailed_avg_time[1] = avg_time - sum_except_enumerate;
+        cout << "Time spent on other, enumerate static, findindex, populate edge count, and countCase, and sum are: " << endl;
+        for(int i=0; i < 5; i++)
+        {
+            cout << detailed_avg_time[i] << ", ";
+        }
+        cout << avg_time;
+        cout << endl;
 
     }
 
