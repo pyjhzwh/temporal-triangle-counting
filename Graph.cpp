@@ -383,7 +383,7 @@ void CSRGraph::deleteGraph()
 {
   delete[] offsets_;
   delete[] nbrs_;
-  if (temporal_start_pos_ = nullptr)
+  if (temporal_start_pos_ != nullptr)
     delete[] temporal_start_pos_;
   if (degen_order_ != nullptr)
     delete[] degen_order_;
@@ -548,6 +548,36 @@ VertexEdgeId CSRTemporalGraph::edgeTimeIntervalCount(VertexEdgeId start_pos, Ver
     return 0;
 
   return last_ind - first_ind;
+}
+
+VertexEdgeId CSRTemporalGraph::getSrcFromEdgeIndex(VertexEdgeId edge)
+{
+  VertexEdgeId src = 0;
+  VertexEdgeId node_left = 0;
+  VertexEdgeId node_right = num_vertices_-1;
+  while(node_left <= node_right)
+    {
+      VertexEdgeId node_middle = (node_left + node_right) / 2;
+      if (offsets_[node_middle + 1] < edge)
+      {
+        node_left = node_middle + 1;
+      }
+      else if(offsets_[node_middle] > edge)
+      {
+        node_right = node_middle - 1;
+      }
+      // offsets_[node_middle] <= edge <=offsets_[node_middle+1] 
+      else if (offsets_[node_middle+1] == edge)
+      {
+        src = node_middle + 1;
+        return src;
+      }
+      else {
+        src = node_middle;
+        return src;
+      }
+    }
+    return src;
 }
 
 void CSRTemporalGraph::printTimeSpan() // prints the time span of the whole temporal graph: max timestmap - min timestamp
