@@ -4,6 +4,7 @@
 
 #include "Graph.h"
 #include <map>
+#include <unordered_map>
 
 //type aliases
 typedef int64_t Count;
@@ -33,7 +34,7 @@ class MotifCounter
     Count motif_type_counts_[8] = {0};  // counts of each temporal triangle type
     Count motif_counts_[6][8] = {{0}};  // at row i column j: motif counts for temporal ordering i and orientation j
     Count triangle_motif_counts_[6][8] = {{0}}; // motif counts for the static triangle being processed
-    
+
     // void populateEdgeCountIndexMap(VertexEdgeId highest_mult);
     void populateEdgeCount(CSRTemporalGraph &t_graph,
                           VertexEdgeId search_for_start_pos,
@@ -50,6 +51,7 @@ class MotifCounter
                           VertexEdgeId plus_delta2);
 
     void countTemporalTriangle(CSRGraph &static_graph, CSRTemporalGraph &temporal_graph, TemporalTime delta, TemporalTime delta1, TemporalTime delta2);
+    void countTemporalChordal4Cycle(CSRGraph &static_graph, CSRTemporalGraph &temporal_graph, TemporalTime delta, TemporalTime delta1, TemporalTime delta2);
     
     Count countCaseA(CSRTemporalGraph &t_graph,
                     VertexEdgeId t1_start_pos, VertexEdgeId t1_end_pos,
@@ -77,7 +79,19 @@ class MotifCounter
                     VertexEdgeId t3_on_t1_minus_inf,
                     VertexEdgeId t2_on_t1_minus_inf,
                     VertexEdgeId t2_on_t1_minus_delta1);
+
+    void hashE3E1Key(CSRTemporalGraph &t_graph,
+                    VertexEdgeId t1_start_pos, VertexEdgeId t1_end_pos,
+                    VertexEdgeId t2_start_pos, VertexEdgeId t2_end_pos,
+                    VertexEdgeId t3_start_pos, VertexEdgeId t3_end_pos,
+                    std::unordered_map<VertexEdgeId, std::map<std::tuple<TemporalTime, VertexEdgeId>, Count>>& e3_e1_map);
     
+    void hashE2E1Key(CSRTemporalGraph &t_graph,
+                    VertexEdgeId t1_start_pos, VertexEdgeId t1_end_pos,
+                    VertexEdgeId t2_start_pos, VertexEdgeId t2_end_pos,
+                    VertexEdgeId t3_start_pos, VertexEdgeId t3_end_pos,
+                    std::unordered_map<VertexEdgeId, std::map<std::tuple<TemporalTime, VertexEdgeId>, Count>>& e2_e1_map);
+
     void printCounts();
     void printCountsFile(const char *path);
     void freeMemory();

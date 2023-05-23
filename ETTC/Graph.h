@@ -132,6 +132,8 @@ class CSRTemporalGraph
     VertexEdgeId edgeTimeMaxLimitCount(VertexEdgeId start_pos, VertexEdgeId end_pos, TemporalTime max_value);
     VertexEdgeId edgeTimeIntervalCount(VertexEdgeId start_pos, VertexEdgeId end_pos, TemporalTime min_value, TemporalTime max_value);
 
+    VertexEdgeId getSrcFromEdgeIndex(VertexEdgeId edge); // given the edge index of temporal_nbrs_ list, find the src Node of that edge
+
     void printTimeSpan();
     void printGraph();
     
